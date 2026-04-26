@@ -1,6 +1,7 @@
 'use strict';
 
 import Meta from 'gi://Meta';
+import Shell from 'gi://Shell';
 
 import { DockPosition } from './dock.js';
 import {
@@ -9,6 +10,14 @@ import {
   isInRect,
   isOverlapRect,
 } from './utils.js';
+
+// Intellihide modes matching Dash to Dock behavior
+export const IntellihideMode = Object.freeze({
+  ALL_WINDOWS: 0,
+  FOCUS_APPLICATION_WINDOWS: 1,
+  MAXIMIZED_WINDOWS: 2,
+  ALWAYS_ON_TOP: 3,
+});
 
 const DEBOUNCE_HIDE_TIMEOUT = 120;
 const PRESSURE_SENSE_DISTANCE = 40;
@@ -228,13 +237,20 @@ export let AutoHide = class {
       return true;
     }
 
-    // console.log("checking fullscreen...");
+    // intellihide mode
+    let intellihideMode = this.extension.intellihide_mode || 0;
+
+    // ALWAYS_ON_TOP mode: only hide when in fullscreen
+    if (intellihideMode === IntellihideMode.ALWAYS_ON_TOP) {
+      if (this.dock._monitor && this.dock._monitor.inFullscreen) {
+        return true;
+      }
+      return false;
+    }
 
     if (this.dock._monitor && this.dock._monitor.inFullscreen) {
       return true;
     }
-
-    // console.log("checking windows...");
 
     let monitor = this.dock._monitor;
     let actors = global.get_window_actors();
@@ -245,13 +261,37 @@ export let AutoHide = class {
     });
     windows = windows.filter((w) => w.can_close());
     windows = windows.filter((w) => w.get_monitor() == monitor.index);
-    // windows = windows.filter((w) => !w.is_override_redirect());
     let workspace = global.workspace_manager.get_active_workspace_index();
     windows = windows.filter(
       (w) =>
         workspace == w.get_workspace().index() && w.showing_on_its_workspace()
     );
     windows = windows.filter((w) => w.get_window_type() in handledWindowTypes);
+
+    // apply intellihide mode filtering
+    if (intellihideMode === IntellihideMode.FOCUS_APPLICATION_WINDOWS) {
+      // only consider windows of the focused application
+      let tracker = Shell.WindowTracker.get_default();
+      let focusApp = tracker.focus_app;
+      if (focusApp) {
+        windows = windows.filter((w) => {
+          let windowApp = tracker.get_window_app(w);
+          return windowApp === focusApp;
+        });
+      }
+    } else if (intellihideMode === IntellihideMode.MAXIMIZED_WINDOWS) {
+      // only consider maximized or fullscreen windows
+      windows = windows.filter((w) => {
+        return (
+          w.maximized_vertically ||
+          w.maximized_horizontally ||
+          (w.get_maximized && w.get_maximized() > 0) ||
+          w.is_fullscreen?.() ||
+          w.fullscreen
+        );
+      });
+    }
+    // ALL_WINDOWS mode: consider all windows (no additional filtering)
 
     let isOverlapped = false;
     let dockRect = this.dock.struts.get_transformed_position();
@@ -272,7 +312,6 @@ export let AutoHide = class {
 
     this.windows = windows;
 
-    // console.log(isOverlapped);
     return isOverlapped;
   }
 

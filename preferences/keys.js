@@ -71,6 +71,11 @@ export const SettingsKeys = () => {
       key_maps: {},
       test: { pointer: 'slide-through' },
     },
+    'intellihide-mode': {
+      default_value: 0,
+      widget_type: 'dropdown',
+      test: { values: [0, 1, 2, 3] },
+    },
     'pressure-sense': {
       default_value: true,
       widget_type: 'switch',

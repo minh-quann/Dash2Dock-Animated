@@ -56,6 +56,11 @@
         <summary>Autohide dodge mode</summary>
         <description>Autohide dash only when overlapping with windows.</description>
     </key>
+    <key type="i" name="intellihide-mode">
+        <default>0</default>
+        <summary>Intelligent autohide mode</summary>
+        <description>Set which windows trigger autohide. 0=All windows, 1=Focused application, 2=Maximized windows only, 3=Always on top.</description>
+    </key>
     <key type="b" name="pressure-sense">
         <default>false</default>
         <summary>Pressure sense</summary>

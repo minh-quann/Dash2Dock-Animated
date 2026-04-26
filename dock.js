@@ -752,6 +752,32 @@ export let Dock = GObject.registerClass(
           c._appwell._activate = c._appwell.activate;
           c._appwell.activate = () => {
             try {
+              let app = c._appwell.app;
+
+              // workspace isolation: prevent jumping to other workspaces
+              if (
+                this.extension.isolate_workspaces &&
+                app.get_windows &&
+                app.state == Shell.AppState.RUNNING
+              ) {
+                let filteredWindows = this.getAppWindowsFiltered(app);
+                if (filteredWindows.length === 0) {
+                  // app is running on another workspace but not here
+                  // open a new window on the current workspace instead of jumping
+                  if (app.can_open_new_window()) {
+                    app.open_new_window(-1);
+                  } else {
+                    // fallback: launch via app_info on current workspace
+                    let workspace =
+                      global.workspace_manager.get_active_workspace();
+                    let ctx = global.create_app_launch_context(0, workspace);
+                    app.app_info.launch([], ctx);
+                  }
+                  this._maybeBounce(c);
+                  return;
+                }
+              }
+
               if (!c._menu) {
                 this._maybeBounce(c);
               }

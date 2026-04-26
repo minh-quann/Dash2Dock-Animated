@@ -147,6 +147,19 @@
             </child>
           </object>
         </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Intelligent Autohide</property>
+            <property name="subtitle" translatable="yes">Choose which windows should trigger the dock to hide.</property>
+            <property name="activatable-widget">intellihide-mode</property>
+            <child>
+              <object class="GtkDropDown" id="intellihide-mode">
+                <property name="valign">center</property>
+                <property name="model">intellihide-mode-model</property>
+              </object>
+            </child>
+          </object>
+        </child>
       </object>
     </child>
     <child>
@@ -321,6 +334,14 @@
       <item translatable="yes">No filter</item>
       <item translatable="yes">Always</item>
       <item translatable="yes">Whenever applicable</item>
+    </items>
+  </object>
+  <object class="GtkStringList" id="intellihide-mode-model">
+    <items>
+      <item translatable="yes">All windows</item>
+      <item translatable="yes">Focused application</item>
+      <item translatable="yes">Maximized windows</item>
+      <item translatable="yes">Always on top</item>
     </items>
   </object>
   <object class="GtkAdjustment" id="scroll-sensitivity-adjust">

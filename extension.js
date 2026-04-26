@@ -578,7 +578,8 @@ export default class Dash2DockLiteExt extends Extension {
           break;
         }
         case 'autohide-dodge':
-        case 'autohide-dash': {
+        case 'autohide-dash':
+        case 'intellihide-mode': {
           this._updateAutohide();
           break;
         }
